@@ -16,7 +16,7 @@ int main()
     matrix* A = alloc(rows, cols);
     fill(A);
 
-    T minimum = LONG_MAX, maximum = LONG_MIN;
+    T minimum = MAXIMUM, maximum = MINIMUM;
 
     {
         ull i, j;
@@ -28,7 +28,7 @@ int main()
             }
             if (minimum > maximum)
                 { maximum = minimum; };
-            minimum = LONG_MAX;
+            minimum = MAXIMUM;
         }
     }
 

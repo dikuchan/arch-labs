@@ -6,6 +6,9 @@
 #include <time.h>
 
 /**
+ * Parameters are defined in compile time.
+ * Use either `-D` flag or CMake declaration.
+ *
  * #define INLINE : If defined, does not require user input.
  * #define WRITE  : If defined, writes matrix to file.
  * #define RMAX   : Random generator range.
@@ -20,18 +23,14 @@
 #if defined(FLOATING)
     typedef double             T;
     #define TOKEN            "%f"
-    #define TOKEN_NL       "%f\n"
-    #define TOKEN_TAB      "%f\t"
 #elif defined(UNSIGNED)
     typedef unsigned long long T;
     #define TOKEN          "%ull"
-    #define TOKEN_NL     "%ull\n"
-    #define TOKEN_TAB    "%ull\t"
 #else
     typedef long long          T;
     #define TOKEN          "%lli"
-    #define TOKEN_NL     "%lli\n"
-    #define TOKEN_TAB    "%lli\t"
+    #define MINIMUM      LONG_MIN
+    #define MAXIMUM      LONG_MAX
 #endif
 
 typedef unsigned long long ull;
@@ -71,7 +70,7 @@ void fill(matrix* A) {
 
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
-#ifdef INLINE
+#if defined(INLINE)
             A(i,j) = rand() % RMAX;
 #else
             char input[20], *pointer;
@@ -87,22 +86,22 @@ void write(const matrix* A, const char* filename) {
     if (!file) { perror("Failed while opening file."); }
 
     iterate(ull, i, A->rows) {
-        iterate(ull, j, A->cols)
-            { fprintf(file, TOKEN_TAB, A(i, j)); }
+        iterate(ull, j, A->cols) {
+            fprintf(file, TOKEN, A(i, j));
+            fprintf(file, "\t");
+        }
         fprintf(file, "\n");
     }
-
-    if (ferror(file)) { puts("Failed while reading file."); }
-    else if (feof(file))
-        { puts("Successfully reached end of file."); }
 
     fclose(file);
 }
 
 void print(const matrix* A) {
     iterate(ull, i, A->rows) {
-        iterate(ull, j, A->cols)
-            { printf(TOKEN_TAB, A(i, j)); }
+        iterate(ull, j, A->cols) {
+            printf(TOKEN, A(i, j));
+            printf("\t");
+        }
         printf("\n");
     }
 }
