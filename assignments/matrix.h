@@ -5,47 +5,25 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "utils.h"
+
 /**
- * Parameters are defined in compile time.
- * Use either `-D` flag or CMake declaration.
- *
  * #define INLINE : If defined, does not require user input.
  * #define WRITE  : If defined, writes matrix to file.
  * #define RMAX   : Random generator range.
- *
- * #define FLOATING : Use double as base type.
- * #define UNSIGNED : Use unsigned integer as base type.
- * DEFAULT          : Signed long long integer.
  */
 
 #define RMAX 40
 
-#if defined(FLOATING)
-    typedef double             T;
-    #define TOKEN            "%f"
-#elif defined(UNSIGNED)
-    typedef unsigned long long T;
-    #define TOKEN          "%ull"
-#else
-    typedef long long          T;
-    #define TOKEN          "%lli"
-    #define MINIMUM      LONG_MIN
-    #define MAXIMUM      LONG_MAX
-#endif
-
-typedef unsigned long long ull;
-
-struct matrix {
+typedef struct {
     ull rows, cols;
     T** data;
-};
-
-typedef struct matrix matrix;
+} matrix;
 
 matrix* alloc(const ull rows, const ull cols) {
     T** data = (T**)malloc(sizeof(T*) * rows);
     for (ull i = 0; i < rows; ++i)
-        { data[i] = (T*) malloc(sizeof(T) * cols); }
+    { data[i] = (T*) malloc(sizeof(T) * cols); }
 
     matrix* A = (matrix*)malloc(sizeof(matrix));
     A->cols = cols;
@@ -55,13 +33,11 @@ matrix* alloc(const ull rows, const ull cols) {
     return A;
 }
 
-#define readnum(result)                      \
-        fgets(input, 20, stdin);             \
-        result = strtol(input, &pointer, 10);
-
 #define A(i, j) A->data[i][j]
 #define B(i, j) B->data[i][j]
 #define C(i, j) C->data[i][j]
+#define vA(i)   vA->data[0][i]
+#define vB(i)   vB->data[0][i]
 
 #define iterate(type, i, range) for (type i = 0; i < range; ++i)
 
@@ -70,12 +46,11 @@ void fill(matrix* A) {
 
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
+            A(i, j) =
 #if defined(INLINE)
-            A(i,j) = rand() % RMAX;
+            rand() % RMAX;
 #else
-            char input[20], *pointer;
-            T result;
-            readnum(result);
+            readnum();
 #endif
         }
     }
@@ -83,7 +58,7 @@ void fill(matrix* A) {
 
 void write(const matrix* A, const char* filename) {
     FILE* file = fopen(filename, "w");
-    if (!file) { perror("Failed while opening file."); }
+    if (!file) { perror("Failed while opening file\n"); }
 
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
@@ -108,7 +83,7 @@ void print(const matrix* A) {
 
 void dealloc(matrix* A) {
     iterate(ull, i, A->rows)
-        { free(A->data[i]); }
+    { free(A->data[i]); }
     free(A->data);
     free(A);
 }

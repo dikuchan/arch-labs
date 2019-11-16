@@ -2,24 +2,21 @@
 
 int main()
 {
-#if defined(INLINE)
-    matrix *A = alloc(300, 200),
-           *B = alloc(200, 300),
-           *C = alloc(300, 300);
-#else
-    char input[20], *pointer;
     ull rowsA, colsA,
         rowsB, colsB;
-
-    readnum(rowsA);
-    readnum(colsA);
-    matrix* A = alloc(rowsA, colsA);
-
-    readnum(rowsB);
-    readnum(colsB);
-    matrix* B = alloc(rowsB, colsB);
-    matrix* C = alloc(rowsA, colsB);
+#if defined(INLINE)
+    rowsA = colsB = 300;
+    colsA = rowsB = 200;
+#else
+    rowsA = readnum();
+    colsA = readnum();
+    rowsB = readnum();
+    colsB = readnum();
 #endif
+
+    matrix *A = alloc(rowsA, colsA),
+           *B = alloc(rowsB, colsB),
+           *C = alloc(rowsA, colsB);
 
     fill(A);
     fill(B);
@@ -33,29 +30,27 @@ int main()
             iterate(, j, B->cols) {
                 T dot = 0;
                 iterate(, k, A->cols)
-                    { dot += A(i, k) * B(k, j); }
+                { dot += A(i, k) * B(k, j); }
                 C(i, j) = dot;
             }
         }
     }
 
-    clock_t parallel = clock();
+    printf("%f\n", ELAPSED);
+    start = clock();
 
     {
         iterate(ull, i, A->rows) {
             iterate(ull, j, B->cols) {
                 T dot = 0;
                 iterate(ull, k, A->cols)
-                    { dot += A(i, k) * B(k, j); }
+                { dot += A(i, k) * B(k, j); }
                 C(i, j) = dot;
             }
         }
     }
 
-    clock_t end = clock();
-
-    printf("%f\n", (double)(parallel - start) / CLOCKS_PER_SEC);
-    printf("%f\n",   (double)(end - parallel) / CLOCKS_PER_SEC);
+    printf("%f\n", ELAPSED);
 
 #if defined(WRITE)
     write(C, "result.txt");
