@@ -28,7 +28,7 @@ int main()
                 { minimum = A(i, j); }
             }
             if (minimum > maximum)
-            { maximum = minimum; };
+            { maximum = minimum; }
             minimum = MAXIMUM;
         }
     }
