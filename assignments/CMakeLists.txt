@@ -4,6 +4,7 @@ project(assignment)
 
 add_executable(minmax minmax.c)
 add_executable(multiplication multiplication.c)
+add_executable(vector vector.c)
 
 set_property(DIRECTORY PROPERTY C_STANDARD 99)
 
