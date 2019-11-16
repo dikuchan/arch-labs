@@ -20,7 +20,8 @@ typedef struct {
     T** data;
 } matrix;
 
-matrix* alloc(const ull rows, const ull cols) {
+matrix* alloc(const ull rows, const ull cols)
+{
     T** data = (T**)malloc(sizeof(T*) * rows);
     for (ull i = 0; i < rows; ++i)
     { data[i] = (T*) malloc(sizeof(T) * cols); }
@@ -36,12 +37,13 @@ matrix* alloc(const ull rows, const ull cols) {
 #define A(i, j) A->data[i][j]
 #define B(i, j) B->data[i][j]
 #define C(i, j) C->data[i][j]
-#define vA(i)   vA->data[0][i]
-#define vB(i)   vB->data[0][i]
+#define vA(i)  vA->data[0][i]
+#define vB(i)  vB->data[0][i]
 
 #define iterate(type, i, range) for (type i = 0; i < range; ++i)
 
-void fill(matrix* A) {
+void fill(const matrix* A)
+{
     srand(time(NULL));
 
     iterate(ull, i, A->rows) {
@@ -56,7 +58,16 @@ void fill(matrix* A) {
     }
 }
 
-void write(const matrix* A, const char* filename) {
+void reset(const matrix* A)
+{
+    iterate(ull, i, A->rows) {
+        iterate(ull, j, A->cols)
+        { A(i, j) = (T)0; }
+    }
+}
+
+void write(const matrix* A, const char* filename)
+{
     FILE* file = fopen(filename, "w");
     if (!file) { perror("Failed while opening file\n"); }
 
@@ -71,7 +82,32 @@ void write(const matrix* A, const char* filename) {
     fclose(file);
 }
 
-void print(const matrix* A) {
+/**
+ * Cells in a row should be separated with TAB.
+ * Rows should be separated with NEWLINE.
+ */
+
+// TODO: Replace fscanf with strtol.
+
+void read(const matrix* A, const char* filename)
+{
+    FILE* file = fopen(filename, "r");
+    if (!file) { perror("Failed while opening file\n"); }
+
+    iterate(ull, i, A->rows) {
+        iterate(ull, j, A->cols) {
+            if (!fscanf(file, TOKEN, &A(i, j))) {
+                perror("Failed reading matrix from file\n");
+                exit(1);
+            }
+        }
+    }
+
+    fclose(file);
+}
+
+void print(const matrix* A)
+{
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
             printf(TOKEN, A(i, j));
@@ -81,7 +117,8 @@ void print(const matrix* A) {
     }
 }
 
-void dealloc(matrix* A) {
+void dealloc(matrix* A)
+{
     iterate(ull, i, A->rows)
     { free(A->data[i]); }
     free(A->data);

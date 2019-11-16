@@ -4,7 +4,7 @@ int main()
 {
     ull rows, cols;
 #if defined(INLINE)
-    rows = cols = 1000;
+    rows = cols = 5000;
 #else
     rows = readnum();
     cols = readnum();
@@ -17,28 +17,58 @@ int main()
     fill(vA);
     fill(A);
 
+    /**
+     * Data split by rows.
+     */
+
     clock_t start = clock();
 
     {
-#pragma omp parallel
+#pragma omp parallel shared(vA, A, B)
         {
             ull i, j;
-            matrix* vB = alloc(1, A->rows);
-            iterate(, i, A->rows) {
 #pragma omp for
+            iterate(, i, A->rows) {
                 iterate(, j, A->cols)
-                { vB(i) += vA(j) * A(i, j); }
-            }
-#pragma omp critical
-            {
-                iterate(, i, A->cols)
-                { B(0, i) = vB(i); }
+                { B(0, i) += vA(j) * A(i, j); }
             };
-            dealloc(vB);
-        };
+        }
     }
 
     printf("%f\n", ELAPSED);
+
+    reset(B);
+
+    /**
+     * Data split by columns.
+     */
+
+    start = clock();
+
+    {
+#pragma omp parallel shared(vA, A, B)
+        {
+            T dot = 0;
+            ull i, j;
+            iterate(, i, A->rows) {
+#pragma omp for
+                iterate(, j, A->cols)
+                { dot += vA(j) * A(i, j); }
+#pragma omp critical
+                {
+                    B(0, i) += dot;
+                    dot = 0;
+                }
+            }
+        }
+    }
+
+    printf("%f\n", ELAPSED);
+
+    /**
+     * // TODO
+     * Data split by blocks.
+     */
 
 #if defined(WRITE)
     write(B, "result.txt");

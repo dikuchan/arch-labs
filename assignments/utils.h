@@ -27,12 +27,12 @@
 
 typedef unsigned long long ull;
 
-T readnum()
+T readnum(FILE* stream)
 {
     T number;
     char input[20], *pointer;
 
-    fgets(input, 20, stdin);
+    fgets(input, 20, stream);
     number = strtol(input, &pointer, 10);
 
     if (!number) {
