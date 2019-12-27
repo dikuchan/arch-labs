@@ -8,10 +8,10 @@ int main()
     rowsA = colsB = 300;
     colsA = rowsB = 200;
 #else
-    rowsA = readnum();
-    colsA = readnum();
-    rowsB = readnum();
-    colsB = readnum();
+    rowsA = readnum(stdin, "First matrix rows: ");
+    colsA = readnum(stdin, "First matrix cols: ");
+    rowsB = readnum(stdin, "Second matrix rows: ");
+    colsB = readnum(stdin, "Second matrix cols: ");
 #endif
 
     matrix *A = alloc(rowsA, colsA),

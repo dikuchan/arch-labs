@@ -13,7 +13,7 @@
  * #define RMAX   : Random generator range.
  */
 
-#define RMAX 40
+#define RMAX 1000
 
 typedef struct {
     ull rows, cols;
@@ -52,7 +52,7 @@ void fill(const matrix* A)
 #if defined(INLINE)
             rand() % RMAX;
 #else
-            readnum();
+            readnum(stdin, "");
 #endif
         }
     }

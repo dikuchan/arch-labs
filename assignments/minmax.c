@@ -8,8 +8,8 @@ int main()
 #if defined(INLINE)
     rows = cols = 100;
 #else
-    rows = readnum();
-    cols = readnum();
+    rows = readnum(stdin, "Number of rows: ");
+    cols = readnum(stdin, "Number of cols: ");
 #endif
 
     matrix* A = alloc(rows, cols);
@@ -21,7 +21,7 @@ int main()
 
     {
         ull i, j;
-#pragma omp parallel for private(i, j) shared(A)
+#pragma omp parallel for private(i, j) shared(A, minimum, maximum)
         iterate(, i, A->rows) {
             iterate(, j, A->cols) {
                 if (A(i, j) < minimum)
