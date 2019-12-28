@@ -1,3 +1,5 @@
+#include <omp.h>
+
 #include "matrix.h"
 
 int main()
@@ -10,9 +12,11 @@ int main()
     cols = readnum();
 #endif
 
-    matrix *vA = alloc(1, rows),
-            *A = alloc(rows, cols),
-            *B = alloc(1, cols);
+    ull threads = 16;
+
+    matrix* vA = alloc(1, rows),
+        * A = alloc(rows, cols),
+        * vB = alloc(1, cols);
 
     fill(vA);
     fill(A);
@@ -24,20 +28,19 @@ int main()
     clock_t start = clock();
 
     {
-#pragma omp parallel shared(vA, A, B)
+        ull i, j;
+#pragma omp parallel private(i, j) shared(vA, A, vB) num_threads(threads)
         {
-            ull i, j;
 #pragma omp for
             iterate(, i, A->rows) {
-                iterate(, j, A->cols)
-                { B(0, i) += vA(j) * A(i, j); }
+                iterate(, j, A->cols) { vB(i) += vA(j) * A(i, j); }
             };
         }
     }
 
     printf("%f\n", ELAPSED);
 
-    reset(B);
+    reset(vB);
 
     /**
      * Data split by columns.
@@ -46,17 +49,16 @@ int main()
     start = clock();
 
     {
-#pragma omp parallel shared(vA, A, B)
+        ull i, j;
+#pragma omp parallel private(i, j) shared(vA, A, vB) num_threads(threads)
         {
             T dot = 0;
-            ull i, j;
             iterate(, i, A->rows) {
 #pragma omp for
-                iterate(, j, A->cols)
-                { dot += vA(j) * A(i, j); }
+                iterate(, j, A->cols) { dot += vA(j) * A(i, j); }
 #pragma omp critical
                 {
-                    B(0, i) += dot;
+                    vB(i) += dot;
                     dot = 0;
                 }
             }
@@ -65,18 +67,45 @@ int main()
 
     printf("%f\n", ELAPSED);
 
+    reset(vB);
+
     /**
-     * // TODO
      * Data split by blocks.
      */
 
+    start = clock();
+
+#pragma omp parallel shared(vA, A, vB) num_threads(threads)
+    {
+        ull t = omp_get_num_threads(),
+            q = t,
+            height = A->rows / t,
+            width = A->cols / q;
+
+        ull blocks;
+#pragma omp for
+        iterate(, blocks, t * q) {
+            ull i = blocks / q,
+                j = blocks % q,
+                k = i * height;
+            iterate(, k, (i + 1) * height) {
+                ull l = j * width;
+                iterate(, l, (j + 1) * width) {
+                    vB(k) += A(k, l) * vA(l);
+                }
+            }
+        }
+    }
+
+    printf("%f\n", ELAPSED);
+
 #if defined(WRITE)
-    write(B, "result.txt");
+    write(vB, "result.txt");
 #endif
 
     dealloc(vA);
     dealloc(A);
-    dealloc(B);
+    dealloc(vB);
 
     return 0;
 }

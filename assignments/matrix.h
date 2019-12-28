@@ -15,18 +15,18 @@
 
 #define RMAX 1000
 
-typedef struct {
+typedef struct
+{
     ull rows, cols;
     T** data;
 } matrix;
 
 matrix* alloc(const ull rows, const ull cols)
 {
-    T** data = (T**)malloc(sizeof(T*) * rows);
-    for (ull i = 0; i < rows; ++i)
-    { data[i] = (T*) malloc(sizeof(T) * cols); }
+    T** data = (T**) malloc(sizeof(T*) * rows);
+    for (ull i = 0; i < rows; ++i) { data[i] = (T*) malloc(sizeof(T) * cols); }
 
-    matrix* A = (matrix*)malloc(sizeof(matrix));
+    matrix* A = (matrix*) malloc(sizeof(matrix));
     A->cols = cols;
     A->rows = rows;
     A->data = data;
@@ -40,8 +40,6 @@ matrix* alloc(const ull rows, const ull cols)
 #define vA(i)  vA->data[0][i]
 #define vB(i)  vB->data[0][i]
 
-#define iterate(type, i, range) for (type i = 0; i < range; ++i)
-
 void fill(const matrix* A)
 {
     srand(time(NULL));
@@ -50,9 +48,9 @@ void fill(const matrix* A)
         iterate(ull, j, A->cols) {
             A(i, j) =
 #if defined(INLINE)
-            rand() % RMAX;
+                    rand() % RMAX;
 #else
-            readnum(stdin, "");
+                    readnum(stdin, "");
 #endif
         }
     }
@@ -61,8 +59,7 @@ void fill(const matrix* A)
 void reset(const matrix* A)
 {
     iterate(ull, i, A->rows) {
-        iterate(ull, j, A->cols)
-        { A(i, j) = (T)0; }
+        iterate(ull, j, A->cols) { A(i, j) = (T) 0; }
     }
 }
 
@@ -119,8 +116,7 @@ void print(const matrix* A)
 
 void dealloc(matrix* A)
 {
-    iterate(ull, i, A->rows)
-    { free(A->data[i]); }
+    iterate(ull, i, A->rows) { free(A->data[i]); }
     free(A->data);
     free(A);
 }
