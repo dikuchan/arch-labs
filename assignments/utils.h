@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdlib.h>
 #include <errno.h>
 
 /**
@@ -14,18 +15,19 @@
 
 #if defined(FLOATING)
     typedef double             T;
-    #define TOKEN            "%f"
+    #define TOKEN          "%f\n"
 #elif defined(UNSIGNED)
     typedef unsigned long long T;
-    #define TOKEN          "%ull"
+    #define TOKEN        "%ull\n"
 #else
     typedef long long          T;
-    #define TOKEN          "%lli"
+    #define TOKEN        "%lli\n"
     #define MINIMUM      LONG_MIN
-    #define MAXIMUM      LONG_MAX
 #endif
 
 typedef unsigned long long ull;
+
+#define iterate(type, i, range) for (type i = 0; i < range; ++i)
 
 T readnum(FILE* stream, const char* prompt)
 {
@@ -55,6 +57,8 @@ T readnum(FILE* stream, const char* prompt)
  * ELAPSED : Convert measured time to human-readable format.
  */
 
-#define ELAPSED (double)(clock() - start) / CLOCKS_PER_SEC
+#define ELAPSED 1000000LL * \
+                (end.tv_sec - start.tv_sec) + \
+                (end.tv_usec - start.tv_usec)
 
 #endif // UTILS_H
