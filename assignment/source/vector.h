@@ -1,34 +1,25 @@
+#ifndef VECTOR_H
+#define VECTOR_H
+
 #include <omp.h>
 #include <sys/time.h>
-#include <string.h>
 
-#include "utils.h"
 #include "matrix.h"
 
-int main()
+ull vrows(ull r, // Matrix rows
+          ull c, // Matrix cols
+          ul threads)
 {
-    ull rows, cols;
-#if defined(INLINE)
-    rows = cols = 5000;
-#else
-    rows = readnum();
-    cols = readnum();
-#endif
-
-    ull threads = 16;
-
-    struct timeval start;
-    struct timeval end;
-
-    matrix* vA = alloc(1, rows),
-        * A = alloc(rows, cols),
-        * vB = alloc(1, cols);
+    timeval start, end;
+    matrix* vA = alloc(1, r),
+          * A  = alloc(r, c),
+          * vB = alloc(1, c); // Result
 
     fill(vA);
     fill(A);
 
     /**
-     * Data split by rows.
+     * Data split by rows
      */
 
     gettimeofday(&start, NULL);
@@ -45,19 +36,38 @@ int main()
     }
 
     gettimeofday(&end, NULL);
-    printf("%llu μs\n", ELAPSED);
 
-    reset(vB);
+#if defined(WRITE)
+    printf("\tResult matrix is written to `vector.txt`\n");
+    write(vB, "vector.txt");
+#endif
+
+    dealloc(vA);
+    dealloc(A);
+    dealloc(vB);
+
+    return ELAPSED;
+}
+
+ull vcols(ull r, ull c, ul threads)
+{
+    timeval start, end;
+    matrix* vA = alloc(1, r),
+          * A  = alloc(r, c),
+          * vB = alloc(1, c); // Result
+
+    fill(vA);
+    fill(A);
 
     /**
-     * Data split by columns.
+     * Data split by columns
      */
 
     gettimeofday(&start, NULL);
 
     {
         ull i = 0, j = 0;
-#pragma omp parallel private(i, j) shared(vA, A, vB) num_threads(threads)
+#pragma omp parallel private(i, j) shared(vB) num_threads(threads)
         {
             T dot = 0;
             iterate(, i, A->rows) {
@@ -73,18 +83,37 @@ int main()
     }
 
     gettimeofday(&end, NULL);
-    printf("%llu μs\n", ELAPSED);
 
-    reset(vB);
+#if defined(WRITE)
+    write(vB, "vector.txt");
+#endif
+
+    dealloc(vA);
+    dealloc(A);
+    dealloc(vB);
+
+    return ELAPSED;
+}
+
+ull vblocks(ull r, ull c, ul threads)
+{
+    timeval start, end;
+    matrix* vA = alloc(1, r),
+          * A  = alloc(r, c),
+          * vB = alloc(1, c); // Result
+
+    fill(vA);
+    fill(A);
 
     /**
-     * Data split by blocks.
+     * Data split by blocks
      */
 
     gettimeofday(&start, NULL);
 
     {
-        ull b = 0, i = 0, j = 0, k = 0, l = 0;
+        ull b = 0, // Block size
+            i = 0, j = 0, k = 0, l = 0;
 #pragma omp parallel shared(vB) num_threads(threads)
         {
             ull lt = omp_get_num_threads(),
@@ -104,15 +133,16 @@ int main()
     }
 
     gettimeofday(&end, NULL);
-    printf("%llu μs\n", ELAPSED);
 
 #if defined(WRITE)
-    write(vB, "result.txt");
+    write(vB, "vector.txt");
 #endif
 
     dealloc(vA);
     dealloc(A);
     dealloc(vB);
 
-    return 0;
+    return ELAPSED;
 }
+
+#endif // VECTOR_H

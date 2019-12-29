@@ -8,12 +8,14 @@
 #include "utils.h"
 
 /**
- * #define INLINE : If defined, does not require user input.
- * #define WRITE  : If defined, writes matrix to file.
- * #define RMAX   : Random generator range.
+ * #define INLINE : If defined, does not require user input
+ * #define WRITE  : If defined, writes matrix to file
+ * #define RMAX   : Random generator range
  */
 
-#define RMAX 1000
+#ifndef RMAX
+#define RMAX 16384
+#endif
 
 typedef struct
 {
@@ -37,8 +39,8 @@ matrix* alloc(const ull rows, const ull cols)
 #define A(i, j) A->data[i][j]
 #define B(i, j) B->data[i][j]
 #define C(i, j) C->data[i][j]
-#define vA(i)  vA->data[0][i]
-#define vB(i)  vB->data[0][i]
+#define vA(i)   vA->data[0][i]
+#define vB(i)   vB->data[0][i]
 
 void fill(const matrix* A)
 {
@@ -46,12 +48,7 @@ void fill(const matrix* A)
 
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
-            A(i, j) =
-#if defined(INLINE)
-                    rand() % RMAX;
-#else
-                    readnum(stdin, "");
-#endif
+            A(i, j) = rand() % RMAX;
         }
     }
 }
@@ -66,7 +63,7 @@ void reset(const matrix* A)
 void write(const matrix* A, const char* filename)
 {
     FILE* file = fopen(filename, "w");
-    if (!file) { perror("Failed while opening file\n"); }
+    if (!file) { perror("Failed while opening file"); }
 
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
@@ -80,21 +77,19 @@ void write(const matrix* A, const char* filename)
 }
 
 /**
- * Cells in a row should be separated with TAB.
- * Rows should be separated with NEWLINE.
+ * Cells in a row should be separated with TAB
+ * Rows should be separated with NEWLINE
  */
-
-// TODO: Replace fscanf with strtol.
 
 void read(const matrix* A, const char* filename)
 {
     FILE* file = fopen(filename, "r");
-    if (!file) { perror("Failed while opening file\n"); }
+    if (!file) { perror("Failed while opening file"); }
 
     iterate(ull, i, A->rows) {
         iterate(ull, j, A->cols) {
             if (!fscanf(file, TOKEN, &A(i, j))) {
-                perror("Failed reading matrix from file\n");
+                perror("Failed reading matrix from file");
                 exit(1);
             }
         }
