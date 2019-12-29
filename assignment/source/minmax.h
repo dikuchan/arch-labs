@@ -40,7 +40,7 @@ ull minmax(ull r, // Matrix rows
     printf("\tResult: ");
     printf(TOKEN, maximum);
 
-#if defined(WRITE)
+#ifdef WRITE
     write(A, "minmax.txt");
     printf("\tMatrix is written to `minmax.txt`\n");
 #endif

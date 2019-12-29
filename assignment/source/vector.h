@@ -37,7 +37,7 @@ ull vrows(ull r, // Matrix rows
 
     gettimeofday(&end, NULL);
 
-#if defined(WRITE)
+#ifdef WRITE
     printf("\tResult matrix is written to `vector.txt`\n");
     write(vB, "vector.txt");
 #endif
@@ -84,7 +84,7 @@ ull vcols(ull r, ull c, ul threads)
 
     gettimeofday(&end, NULL);
 
-#if defined(WRITE)
+#ifdef WRITE
     write(vB, "vector.txt");
 #endif
 
@@ -134,7 +134,7 @@ ull vblocks(ull r, ull c, ul threads)
 
     gettimeofday(&end, NULL);
 
-#if defined(WRITE)
+#ifdef WRITE
     write(vB, "vector.txt");
 #endif
 

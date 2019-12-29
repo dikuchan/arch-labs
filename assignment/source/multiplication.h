@@ -41,7 +41,7 @@ ull mstandard(ull ar, ull ac, // Matrix A rows and cols
 
     gettimeofday(&end, NULL);
 
-#if defined(WRITE)
+#ifdef WRITE
     write(C, "product.txt");
     printf("\tResult matrix is written to `product.txt`\n");
 #endif
@@ -64,6 +64,10 @@ ull mblocks(ull ar, ull ac, ull br, ull bc, ul threads)
     fill(B);
 
     gettimeofday(&start, NULL);
+
+    /**
+     * Block method
+     */
 
 #pragma omp parallel shared(C) num_threads(threads)
     {
@@ -89,7 +93,7 @@ ull mblocks(ull ar, ull ac, ull br, ull bc, ul threads)
 
     gettimeofday(&end, NULL);
 
-#if defined(WRITE)
+#ifdef WRITE
     write(C, "product.txt");
 #endif
 
@@ -99,5 +103,35 @@ ull mblocks(ull ar, ull ac, ull br, ull bc, ul threads)
 
     return ELAPSED;
 }
+
+ull mtape(ull ar, ull ac, ull br, ull bc, ul threads)
+{
+    timeval start, end;
+    matrix* A = alloc(ar, ac),
+          * B = alloc(br, bc),
+          * C = alloc(ar, bc);
+
+    fill(A);
+    fill(B);
+
+    gettimeofday(&start, NULL);
+
+    /**
+     * TODO: Tape method
+     */
+
+    gettimeofday(&end, NULL);
+
+#ifdef WRITE
+    write(C, "product.txt");
+#endif
+
+    dealloc(A);
+    dealloc(B);
+    dealloc(C);
+
+    return ELAPSED;
+}
+
 
 #endif // MULTIPLICATION_H
