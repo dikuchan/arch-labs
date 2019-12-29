@@ -1,5 +1,8 @@
 #include <omp.h>
+#include <sys/time.h>
+#include <string.h>
 
+#include "utils.h"
 #include "matrix.h"
 
 int main()
@@ -14,6 +17,9 @@ int main()
 
     ull threads = 16;
 
+    struct timeval start;
+    struct timeval end;
+
     matrix* vA = alloc(1, rows),
         * A = alloc(rows, cols),
         * vB = alloc(1, cols);
@@ -25,20 +31,21 @@ int main()
      * Data split by rows.
      */
 
-    clock_t start = clock();
+    gettimeofday(&start, NULL);
 
     {
-        ull i, j;
-#pragma omp parallel private(i, j) shared(vA, A, vB) num_threads(threads)
+        ull i = 0, j = 0;
+#pragma omp parallel private(i, j) shared(vB) num_threads(threads)
         {
 #pragma omp for
             iterate(, i, A->rows) {
                 iterate(, j, A->cols) { vB(i) += vA(j) * A(i, j); }
-            };
+            }
         }
     }
 
-    printf("%f\n", ELAPSED);
+    gettimeofday(&end, NULL);
+    printf("%llu μs\n", ELAPSED);
 
     reset(vB);
 
@@ -46,10 +53,10 @@ int main()
      * Data split by columns.
      */
 
-    start = clock();
+    gettimeofday(&start, NULL);
 
     {
-        ull i, j;
+        ull i = 0, j = 0;
 #pragma omp parallel private(i, j) shared(vA, A, vB) num_threads(threads)
         {
             T dot = 0;
@@ -65,7 +72,8 @@ int main()
         }
     }
 
-    printf("%f\n", ELAPSED);
+    gettimeofday(&end, NULL);
+    printf("%llu μs\n", ELAPSED);
 
     reset(vB);
 
@@ -73,31 +81,30 @@ int main()
      * Data split by blocks.
      */
 
-    start = clock();
+    gettimeofday(&start, NULL);
 
-#pragma omp parallel shared(vA, A, vB) num_threads(threads)
     {
-        ull t = omp_get_num_threads(),
-            q = t,
-            height = A->rows / t,
-            width = A->cols / q;
-
-        ull blocks;
-#pragma omp for
-        iterate(, blocks, t * q) {
-            ull i = blocks / q,
-                j = blocks % q,
-                k = i * height;
-            iterate(, k, (i + 1) * height) {
-                ull l = j * width;
-                iterate(, l, (j + 1) * width) {
-                    vB(k) += A(k, l) * vA(l);
+        ull b = 0, i = 0, j = 0, k = 0, l = 0;
+#pragma omp parallel shared(vB) num_threads(threads)
+        {
+            ull lt = omp_get_num_threads(),
+                height = A->rows / lt,
+                width = A->cols / lt;
+#pragma omp for private(b, i, j, k, l)
+            iterate(, b, lt * lt) {
+                i = b / lt;
+                j = b % lt;
+                for (k = i * width; k != (i + 1) * height; ++k) {
+                    for (l = j * width; l != (j + 1) * width; ++l) {
+                        vB(k) += A(k, l) * vA(l);
+                    }
                 }
             }
         }
     }
 
-    printf("%f\n", ELAPSED);
+    gettimeofday(&end, NULL);
+    printf("%llu μs\n", ELAPSED);
 
 #if defined(WRITE)
     write(vB, "result.txt");

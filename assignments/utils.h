@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <stdio.h>
 
 /**
  * Parameters are defined in compile time.
