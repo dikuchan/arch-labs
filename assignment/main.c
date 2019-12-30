@@ -7,15 +7,15 @@
 #include "pattern.h"
 
 const char* info =
-    "Usage: assignment [task]\n";
+    "Usage: assignment [task]";
 
 int main(int argc, char** argv)
 {
     if (argc == 1) {
 #ifdef INLINE
-        ull r  = 102, c  = 102,
-            ar = 102, ac = 102,
-            br = 102, bc = 102;
+        ull r  = 512, c  = 512,
+            ar = 512, ac = 512,
+            br = 512, bc = 512;
         ul threads = 8;
 
         const char* filename = "sample.txt";
@@ -45,11 +45,10 @@ int main(int argc, char** argv)
          * Minmax (Task 1)
          */
 
-        printf(
-            "\n(1)\n\tRows: %llu\n\tCols: %llu\n\tThreads: %lu\n\n",
-            r,
-            c,
-            threads);
+        printf("\n(1)\n");
+
+        printf("\tRows: %llu\n\tCols: %llu\n\tThreads: %lu\n\n", r, c, threads);
+
         printf("\tMinmax time: %llu μs\n", minmax(100, 100, 16));
 
         /**
@@ -57,27 +56,25 @@ int main(int argc, char** argv)
          */
 
         printf("\n(2)\n");
-        printf("\tA:\n\t\tRows: %llu\n\t\tCols: %llu\n", ar, ac);
-        printf("\tB:\n\t\tRows: %llu\n\t\tCols: %llu\n", br, bc);
-        printf("\tThreads: %lu\n\n", threads);
-        printf(
-            "\tStandard multiplication time: %llu μs\n",
-            mstandard(ar, ac, br, bc, threads));
-        printf(
-            "\tBlocks multiplication time: %llu μs\n",
-            mblocks(ar, ac, br, bc, threads));
+
+        printf("\tA:\n\t\tRows: %llu\n\t\tCols: %llu\n", ar, ac );
+        printf("\tB:\n\t\tRows: %llu\n\t\tCols: %llu\n", br, bc );
+        printf("\tThreads: %lu\n\n",                     threads);
+
+        printf("\tStandard multiplication time: %llu μs\n",     mstandard    (ar, ac, br, bc, threads));
+        printf("\tBlocks multiplication time: %llu μs\n",       mblocks      (ar, ac, br, bc, threads));
+        printf("\tCheckerboard multiplication time: %llu μs\n", mcheckerboard(ar, ac, br, bc, threads));
 
         /**
          * Vector multiplication (Task 3)
          */
 
-        printf(
-            "\n(3)\n\tRows: %llu\n\tCols: %llu\n\tThreads: %lu\n\n",
-            r,
-            c,
-            threads);
-        printf("\tSplit by rows time: %llu μs\n", vrows(r, c, threads));
-        printf("\tSplit by cols time: %llu μs\n", vcols(r, c, threads));
+        printf("\n(3)\n");
+
+        printf("\tRows: %llu\n\tCols: %llu\n\tThreads: %lu\n\n", r, c, threads);
+
+        printf("\tSplit by rows time: %llu μs\n",   vrows  (r, c, threads));
+        printf("\tSplit by cols time: %llu μs\n",   vcols  (r, c, threads));
         printf("\tSplit by blocks time: %llu μs\n", vblocks(r, c, threads));
 
         /**
@@ -88,9 +85,40 @@ int main(int argc, char** argv)
         printf("\tPattern matching time: %llu μs\n", pattern(filename, mask));
     }
     else if (argc == 2) {
-        if (!strcmp("-i", argv[1])) {
-            printf("%s\n", info);
+        if (!strcmp("-i", argv[1])) { printf("%s\n", info); }
+        else if (!strcmp("-o", argv[1])) {
+            FILE* file = fopen("statistics.txt", "a");
+            const char* filename = "sample.txt";
+            char* mask = "*lsk?";
+
+            if (!file) {
+                perror("Opening file error");
+                return 1;
+            }
+
+            fprintf(file, "\n[%s, %s]\n", __DATE__, __TIME__);
+
+            iterate(ull, s, 4096) { // Size of matrices
+                iterate(ul, t, 16) { // Number of threads
+                    fprintf(file, "\t[%llu %lu]\n", s, t);
+
+                    fprintf(file, "\t\t(1) [Minmax]       %llu\n", minmax       (s, s, t)       );
+                    fprintf(file, "\t\t(2) [Standard]     %llu\n", mstandard    (s, s, s, s, t) );
+                    fprintf(file, "\t\t(2) [Blocks]       %llu\n", mblocks      (s, s, s, s, t) );
+                    fprintf(file, "\t\t(2) [Checkerboard] %llu\n", mcheckerboard(s, s, s, s, t) );
+                    fprintf(file, "\t\t(3) [Rows]         %llu\n", vrows        (s, s, t)       );
+                    fprintf(file, "\t\t(3) [Cols]         %llu\n", vcols        (s, s, t)       );
+                    fprintf(file, "\t\t(3) [Blocks]       %llu\n", vblocks      (s, s, t)       );
+                    fprintf(file, "\t\t(4) [Pattern]      %llu\n", pattern      (filename, mask));
+                }
+            }
+
+            fclose(file);
         }
+    }
+    else {
+        perror("Parsing error");
+        return 1;
     }
 
     return 0;

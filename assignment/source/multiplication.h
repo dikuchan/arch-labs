@@ -71,19 +71,15 @@ ull mblocks(ull ar, ull ac, ull br, ull bc, ul threads)
 
 #pragma omp parallel shared(C) num_threads(threads)
     {
-        ull lt = omp_get_num_threads(),
-            abh = A->rows / lt, // Height of A matrix block
-            abw = A->cols / lt, // Width of A matrix block
-         // bbh = B->rows / lt, // Height of B matrix block
-            bbw = B->cols / lt; // Width of B matrix block
-#pragma omp for
-        iterate(ull, abc, lt * lt) { // Matrix A block counter
-            ull ib = abc / lt, jb = abc % lt; // Block index
-            iterate(ull, kb, lt) {
-                for (ull i = ib * abh; i < (ib + 1) * abh; ++i) {
-                    for (ull j = jb * abw; j < (jb + 1) * abw; ++j) {
-                        for (ull k = kb * bbw; k < (kb + 1) * bbw; ++k) {
-                            C(i, k) += A(i, j) * B(j, k);
+        ull lt = threads,
+            iv = 0, ih = 0;
+#pragma omp for schedule(static) collapse(2)
+        iterate(, iv, lt) { // Vertical block index
+            iterate(, ih, lt) { // Horizontal block index
+                for (ull i = iv * A->rows / lt; i < (iv + 1) * A->rows / lt; ++i) {
+                    for (ull j = ih * A->cols / lt; j < (ih + 1) * A->cols / lt; ++j) {
+                        iterate(ull, k, A->cols) {
+                            C(i, j) += A(i, k) * B(k, j);
                         }
                     }
                 }
@@ -104,7 +100,7 @@ ull mblocks(ull ar, ull ac, ull br, ull bc, ul threads)
     return ELAPSED;
 }
 
-ull mtape(ull ar, ull ac, ull br, ull bc, ul threads)
+ull mcheckerboard(ull ar, ull ac, ull br, ull bc, ul threads)
 {
     timeval start, end;
     matrix* A = alloc(ar, ac),
@@ -117,8 +113,31 @@ ull mtape(ull ar, ull ac, ull br, ull bc, ul threads)
     gettimeofday(&start, NULL);
 
     /**
-     * TODO: Tape method
+     * Checkerboard method
      */
+
+#pragma omp parallel shared(C)
+    {
+        ull bv = threads, // Vertical blocks
+            bh = threads, // Horizontal blocks
+            bk = threads, // K blocks
+            iv = 0, ih = 0, ik = 0; // Indices
+#pragma omp for collapse(2)
+        iterate(, iv, bv) {
+            iterate(, ih, bh) {
+                iterate(, ik, bk) {
+                    for (ull i = iv * A->rows / bv; i < (iv + 1) * A->rows / bv; ++i) {
+                        for (ull j = ih * B->cols / bh; j < (ih + 1) * B->cols / bh; ++j) {
+                            for (ull k = ik * A->cols / bk; k < (ik + 1) * A->cols / bk; ++k) {
+#pragma omp atomic
+                                C(i, j) += A(i, k) * B(k, j);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     gettimeofday(&end, NULL);
 

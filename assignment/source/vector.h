@@ -12,8 +12,8 @@ ull vrows(ull r, // Matrix rows
 {
     timeval start, end;
     matrix* vA = alloc(1, r),
-          * A  = alloc(r, c),
-          * vB = alloc(1, c); // Result
+        * A = alloc(r, c),
+        * vB = alloc(1, c); // Result
 
     fill(vA);
     fill(A);
@@ -53,8 +53,8 @@ ull vcols(ull r, ull c, ul threads)
 {
     timeval start, end;
     matrix* vA = alloc(1, r),
-          * A  = alloc(r, c),
-          * vB = alloc(1, c); // Result
+        * A = alloc(r, c),
+        * vB = alloc(1, c); // Result
 
     fill(vA);
     fill(A);
@@ -99,8 +99,8 @@ ull vblocks(ull r, ull c, ul threads)
 {
     timeval start, end;
     matrix* vA = alloc(1, r),
-          * A  = alloc(r, c),
-          * vB = alloc(1, c); // Result
+        * A = alloc(r, c),
+        * vB = alloc(1, c); // Result
 
     fill(vA);
     fill(A);
@@ -111,21 +111,18 @@ ull vblocks(ull r, ull c, ul threads)
 
     gettimeofday(&start, NULL);
 
-    {
-        ull b = 0, // Block size
-            i = 0, j = 0, k = 0, l = 0;
 #pragma omp parallel shared(vB) num_threads(threads)
-        {
-            ull lt = omp_get_num_threads(),
-                height = A->rows / lt,
-                width = A->cols / lt;
-#pragma omp for private(b, i, j, k, l)
-            iterate(, b, lt * lt) {
-                i = b / lt;
-                j = b % lt;
-                for (k = i * width; k != (i + 1) * height; ++k) {
-                    for (l = j * width; l != (j + 1) * width; ++l) {
-                        vB(k) += A(k, l) * vA(l);
+    {
+        ull lt = omp_get_num_threads(),
+            bv = lt, // Vertical blocks
+            bh = lt; // Horizontal blocks
+#pragma omp for collapse(2)
+        iterate(ull, iv, lt) {
+            iterate(ull, ih, lt) {
+                for (ull i = iv * A->rows / bv; i < (iv + 1) * A->rows / bv; ++i) {
+                    for (ull j = ih * A->cols / bh; j < (ih + 1) * A->cols / bh; ++j) {
+#pragma omp atomic
+                        vB(i) += A(i, j) * vA(i);
                     }
                 }
             }
