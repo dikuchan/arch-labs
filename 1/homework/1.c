@@ -95,13 +95,10 @@ int main(int argc, char** argv)
                 perror("Opening file error");
                 return 1;
             }
-
             fprintf(file, "\n[%s, %s]\n", __DATE__, __TIME__);
-
             iterate(ull, s, 4096) { // Size of matrices
                 iterate(ul, t, 16) { // Number of threads
                     fprintf(file, "\t[%llu %lu]\n", s, t);
-
                     fprintf(file, "\t\t(1) [Minmax]       %llu\n", minmax       (s, s, t)       );
                     fprintf(file, "\t\t(2) [Standard]     %llu\n", mstandard    (s, s, s, s, t) );
                     fprintf(file, "\t\t(2) [Blocks]       %llu\n", mblocks      (s, s, s, s, t) );
@@ -112,7 +109,6 @@ int main(int argc, char** argv)
                     fprintf(file, "\t\t(4) [Pattern]      %llu\n", pattern      (filename, mask));
                 }
             }
-
             fclose(file);
         }
     }
