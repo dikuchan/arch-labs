@@ -44,3 +44,13 @@ $ mpirun 1
 $ Device 2 (pure) out of 2
 $ Device 1 (pure) out of 2
 ```
+
+Аналогично для заданий по CUDA.
+
+```bash
+$ make
+$ ./1
+$ 10 + 2 = 12
+...
+$ 2 + 21 = 23
+```
