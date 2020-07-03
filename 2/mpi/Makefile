@@ -1,7 +1,12 @@
-EXECS=hello baton shift master each
+EXECS=hello baton shift master each sort
 MPICC=mpicc
+START=mpirun
 
 all: ${EXECS}
+
+tests: sort
+	for i in {1..20}; do ${START} 6 20 20; done
+	gawk -f results.awk results.txt
 
 hello: hello.c
 	${MPICC} -o 1 hello.c
@@ -18,5 +23,9 @@ master: master.c
 each: each.c
 	${MPICC} -o 5 each.c
 
+sort: sort.c
+	${MPICC} -o 6 sort.c
+
 clean:
-	seq -s ' ' 5 | xargs rm
+	seq -s ' ' 6 | xargs rm
+	rm *.txt
